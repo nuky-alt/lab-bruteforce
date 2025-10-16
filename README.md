@@ -167,9 +167,10 @@ Password for [WORKGROUP\root]:  # Digite qualquer senha
         IPC$            IPC       IPC Service (LAB-SAMBA)
 SMB1 disabled -- no workgroup available
 ```
-tentando conectar podemos identificar
-	- smb1 desativado (ja identificado la no inicio com o nmap)
- 	- nome da pasta de compartilhamento [smbshare]
+Tentando conectar podemos identificar
+- smb1 desativado (ja identificado la no inicio com o nmap)
+- Nome da pasta de compartilhamento **smbshare**
+
 Seria muito simples utilizar alguma ferramenta como o medusa que mostramos anteriormente ou derivados como hydra,metasploit.
 
 mas vamos a uma abordagem diferente.
@@ -223,7 +224,7 @@ ao executar o script quando ele conseguir uma par que faz o login ele ja vai log
 
 
 ## Brute-force Web (WFuzz)
-#Identifique a requisição POST com o DevTools do navegador (aba Network). Supondo payload:
+# Identifique a requisição POST com o DevTools do navegador (aba Network). Supondo payload:
 
 ```bash
 POST /login
@@ -233,8 +234,11 @@ Comando WFuzz (exemplo):
 ```bash
 wfuzz -c -z file,user.txt -z file,password.txt -d "username=FUZZ&password=FUZ2Z"  http://172.25.223.247:8000/
 ```
+
 > -c              : Output with colors
-> -z payload                : Specify a payload for each FUZZ keyword used in the form of type,parameters,encoder.
+>
+>-z payload                : Specify a payload for each FUZZ keyword used in the form of type,parameters,encoder.
+>
 > -d postdata      : Use post data (ex: "id=FUZZ&catalogue=1")
 
 Para WFuzz, detecte respostas com tamanho/código diferente (ex.: redirecionamento 302 ou body length diferente).
