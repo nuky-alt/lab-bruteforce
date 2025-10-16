@@ -9,7 +9,7 @@ Projeto mini-lab para demonstrar um fluxo completo de reconhecimento e ataques d
 - Atacante: Kali Linux (WSL)
 - Alvo: openSUSE (WSL)
 - IP do alvo no laboratório (exemplo): `172.25.223.247`
-- Ferramentas usadas: `nmap`, `medusa`, `hydra`, `smbclient`, `wfuzz`, 
+- Ferramentas usadas: `nmap`, `medusa`, `hydra`, `smbclient`, `wfuzz`, `php`
 
 ---
 
@@ -21,13 +21,14 @@ Projeto mini-lab para demonstrar um fluxo completo de reconhecimento e ataques d
 ```bash
 sudo useradd -m -s /bin/bash labuser
 sudo passwd labuser   # use: EasierPassword@123 (exemplo)
+sudo mkdir -p /home/labuser
+sudo chown -R labuser:labuser /home/labuser
 ```
 2. Criar diretórios:
 ```bash
 sudo mkdir -p /srv/lab/smbshare
 sudo mkdir -p /srv/lab/ftpshare
-sudo mkdir -p /home/labuser
-sudo chown -R labuser:labuser /home/labuser
+sudo mkdir -p /srv/lab/web/
 sudo chown -R labuser:labuser /srv/lab
 sudo chmod -R 0755 /srv/lab'
 ```
@@ -78,6 +79,7 @@ allow_writeable_chroot=YES
 sudo smbpasswd -a labuser    # define/ativa senha smb
 sudo systemctl restart smb nmb vsftpd
 sudo systemctl status smb nmb vsftpd
+sudo php -S 0.0.0.0:8000 -t /srv/lab/web
 ```
 ## Reconhecimento inicial (exemplo)
 Nesta etapa buscamos identificar possíveis pontos de entrada no alvo. Começamos com mapeamento de portas e serviços usando nmap.
@@ -220,11 +222,46 @@ smb: \> ls
                 1055762868 blocks of size 1024. 1001491212 blocks available
 smb: \>
 ```
-ao executar o script quando ele conseguir uma par que faz o login ele ja vai logar o smb e vc pode usar os comandos para navegar 
+Ao executar o script quando ele conseguir uma par que faz o login ele ja vai logar o smb e vc pode usar os comandos para navegar 
 
 
 ## Brute-force Web (WFuzz)
 # Identifique a requisição POST com o DevTools do navegador (aba Network). Supondo payload:
+### Para parte web deixei como recomendação arquivos de uma simples pagina em php para que possa realizar seus testes. a ideia é que vc desenvolva todo para entender os processos 
+
++ Abaixo tem a base do codigo que é uma simples request via POST utilizei o php mas pode utilizar qualquer outra linguagem.
+
+caso tenha duvidas sobre o codigo pode utilizar ferramentas como ChatGPT para te explicar o codigo.
+
+```php
+<?php
+session_start();
+
+// Usuários em memória (username => password)
+$USERS = [
+    "admin"   => "admin123",
+    "labuser" => "WeakPass123",
+    "guest"   => "guest"
+];
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+    $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+
+    if (array_key_exists($username, $USERS) && $USERS[$username] === $password) {
+        // Login bem-sucedido
+        $_SESSION['user'] = $username;
+        header("Location: welcome.php");
+        exit;
+    } else {
+        // Mensagem de erro intencional e consistente
+        $error = "Credenciais inválidas";
+    }
+}
+?>
+```
 
 ```bash
 POST /login
