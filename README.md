@@ -24,6 +24,9 @@ sudo passwd labuser   # use: EasierPassword@123 (exemplo)
 sudo mkdir -p /home/labuser
 sudo chown -R labuser:labuser /home/labuser
 ```
+> explicação dos comandos
+> [`useradd`](https://explainshell.com/explain?cmd=sudo+useradd+-m+-s+%2Fbin%2Fbash+labuser), [`passwd`](https://explainshell.com/explain?cmd=sudo+passwd+labuser), [`mkdir`](https://explainshell.com/explain?cmd=sudo%20mkdir%20-p%20/home/labuser), [`chown`](https://explainshell.com/explain?cmd=sudo%20chown%20-R%20labuser:labuser%20/home/labuser)
+> 
 2. Criar diretórios:
 ```bash
 sudo mkdir -p /srv/lab/smbshare
@@ -38,7 +41,7 @@ sudo zypper install -y samba vsftpd    # openSUSE example
 # ou em Debian/Ubuntu:
 # sudo apt update && sudo apt install -y samba vsftpd
 ```
-4. Samba (/etc/samba/smb.conf) — exemplo mínimo usado:
+4. Samba `(/etc/samba/smb.conf)` — exemplo mínimo usado:
 ```bash
 [global]
    server string = LAB-SAMBA
@@ -58,7 +61,7 @@ sudo zypper install -y samba vsftpd    # openSUSE example
    guest ok = no
    valid users = labuser
 ```
-5. FTP (/etc/vsftpd.conf) — exemplo usado:
+5. FTP `(/etc/vsftpd.conf)` — exemplo usado:
 ```bash
 listen=YES
 anonymous_enable=NO
@@ -144,7 +147,7 @@ neste caso o nosso alvo é vulnerável a um ataque de brute force então utiliza
 caso ainda não tenha instalado pode usar o comando apt install medusa ou utilize o gerenciador de pacotes da sua distribuição
 
 ### Aqui estamos utiliozando uma wordlista criada por mim bem pequena mas deve utilizar worslists para cada tipo de situação como recomendação fica o github da seclist que contem diversas wordlists 
-- [SecList](https://github.com/danielmiessler/SecLists) 
+- [**SecList**](https://github.com/danielmiessler/SecLists) 
 # Instalar:
 ```bash
 sudo apt install medusa
