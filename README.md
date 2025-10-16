@@ -9,7 +9,7 @@ Projeto mini-lab para demonstrar um fluxo completo de reconhecimento e ataques d
 - Atacante: Kali Linux (WSL)
 - Alvo: openSUSE (WSL)
 - IP do alvo no laboratório (exemplo): `172.25.223.247`
-- Ferramentas usadas (exemplos): `nmap`, `medusa`, `hydra`, `smbclient`, `smbpasswd`, `smbstatus`, `wfuzz`, `crackmapexec` (opcional), `impacket` (opcional).
+- Ferramentas usadas: `nmap`, `medusa`, `hydra`, `smbclient`, `wfuzz`, 
 
 ---
 
@@ -147,7 +147,6 @@ caso ainda não tenha instalado pode usar o comando apt install medusa ou utiliz
 ```bash
 sudo apt install medusa
 ```
-
 
 # executando medusa
 ```bash
